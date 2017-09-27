@@ -144,7 +144,7 @@
                   "autoUpgradeMinorVersion": true,
                   "settings": {
                     "fileUris": [
-                      "https://gist.githubusercontent.com/lawrencegripper/0ba8be3bfc027f7d33c3d879ba26041d/raw/f977786520cbcd69eaf424eb04872219c3040065/init.sh"
+                      "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/master/mounter.sh"
                     ],
                     "commandToExecute": "[concat('bash init.sh ', parameters('storageAccountName'), ' ', parameters('storageAccountKey'), ' ', parameters('shareName'), ' ', parameters('mountpointPath'))]"
                   }
