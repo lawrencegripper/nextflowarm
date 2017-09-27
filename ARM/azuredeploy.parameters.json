@@ -1,0 +1,39 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "adminUsername": {
+      "value": "USERNAME"
+    },
+    "adminPassword": {
+      "value": "GENAPASSWORD"
+    },
+    "vmssName": {
+      "value": "VMSSUNIQUENAME"
+    },
+    "instanceCount": {
+      "value": 2
+    },
+    "existingVnetResourceGroupName": {
+      "value": "VNETDETAILS"
+    },
+    "existingVnetName": {
+      "value": "VNETDETILS"
+    },
+    "existingSubnetName": {
+      "value": "default"
+    },
+    "storageAccountName": {
+      "value": "STORAGENAME"
+    },
+    "storageAccountKey": {
+      "value": "STORAGEKEY"
+    },
+    "shareName": {
+      "value": "shared"
+    },    
+    "mountpointPath": {
+      "value": "/mnt/shared"
+    }
+  }
+}
