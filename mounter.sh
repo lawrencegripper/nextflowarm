@@ -37,4 +37,4 @@ curl -s https://get.nextflow.io | bash | tee -a $LOGFILE
 #Run nextflow under log dir to provide easy access to logs
 NFDIR=$(pwd)
 cd $LOGFOLDER
-$NFDIR/nextflow node -bg -cluster.join path:/media/shared/cluster
+$NFDIR/nextflow node -bg -cluster.join path:$4/cluster
