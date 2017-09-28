@@ -4,6 +4,7 @@
 # $2 = Azure storage account key
 # $3 = Azure file share name
 # $4 = mountpoint path
+# $5 = should run as nf node
 
 #Install CIFS and JQ (used by this script)
 apt-get -y update | tee /tmp/nfinstall.log
@@ -43,7 +44,12 @@ echo export NXF_TEMP=/mnt >> ~/.bash_profile
 #Install nextflow
 curl -s https://get.nextflow.io | bash | tee -a $LOGFILE
 
+#If we're a node run the daemon
+if [ "$5" = true ]; then 
+
 #Run nextflow under log dir to provide easy access to logs
 NFDIR=$(pwd)
 cd $LOGFOLDER
 $NFDIR/nextflow node -bg -cluster.join path:$4/cluster
+
+fi
