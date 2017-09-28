@@ -263,7 +263,7 @@
         "autoUpgradeMinorVersion": true,
         "settings": {
           "fileUris": [
-              "https://raw.githubusercontent.com/anraman/dockerJavaARM/master/installJava.sh"
+              "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/master/installJava.sh"
           ],
           "commandToExecute": "sh installJava.sh"
         }
