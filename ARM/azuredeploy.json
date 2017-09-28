@@ -169,7 +169,8 @@
       "name": "[variables('jumpboxVMName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
+        "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('jumpboxNICName'))]"
       ],
       "properties": {
         "hardwareProfile": {
