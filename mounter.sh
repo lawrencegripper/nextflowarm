@@ -6,6 +6,8 @@
 # $4 = mountpoint path
 # $5 = should run as nf node
 
+DEBIAN_FRONTEND=noninteractive apt-get autoremove
+
 #Install CIFS and JQ (used by this script)
 apt-get -y update | tee /tmp/nfinstall.log
 apt-get install cifs-utils jq -y | tee -a /tmp/nfinstall.log
