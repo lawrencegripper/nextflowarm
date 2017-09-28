@@ -31,6 +31,15 @@ echo $METADATA > $4/logs/$NODENAME/node.metadata
 #Install java
 apt-get install openjdk-8-jdk -y | tee -a $LOGFILE
 
+#Allow user access to temporary drive
+chmod 777 /mnt
+
+#Configure nextflow environment vars
+echo export NXF_ASSETS=$4/assets >> ~/.bash_profile
+echo export NXF_WORK=$4/work >> ~/.bash_profile
+#Use asure epherical instance drive for tmp
+echo export NXF_TEMP=/mnt >> ~/.bash_profile
+
 #Install nextflow
 curl -s https://get.nextflow.io | bash | tee -a $LOGFILE
 
