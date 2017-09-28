@@ -286,7 +286,7 @@
                       "name": "ipconfig",
                       "properties": {
                         "subnet": {
-                          "id": "[concat('/subscriptions/', subscription().subscriptionId,'/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/virtualNetworks/subnets/', parameters('vnetName'), '/', parameters('subnetName'))]"
+                          "id": "[concat('/subscriptions/', subscription().subscriptionId,'/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/virtualNetworks/', parameters('vnetName'), '/subnets/', parameters('subnetName'))]"
                         }
                       }
                     }
