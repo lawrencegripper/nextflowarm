@@ -4,7 +4,8 @@
 # $2 = Azure storage account key
 # $3 = Azure file share name
 
-DEBIAN_FRONTEND=noninteractive apt-get autoremove
+DEBIAN_FRONTEND=noninteractive apt-get
+DEBIAN_FRONTEND=noninteractive apt-key
 
 echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ wheezy main" | \
      sudo tee /etc/apt/sources.list.d/azure-cli.list 

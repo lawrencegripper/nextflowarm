@@ -6,7 +6,7 @@
 # $4 = mountpoint path
 # $5 = should run as nf node
 
-DEBIAN_FRONTEND=noninteractive apt-get autoremove
+DEBIAN_FRONTEND=noninteractive apt-get
 
 #Install CIFS and JQ (used by this script)
 apt-get -y update | tee /tmp/nfinstall.log
@@ -35,7 +35,7 @@ echo $METADATA > $4/logs/$NODENAME/node.metadata
 apt-get install openjdk-8-jdk -y | tee -a $LOGFILE
 
 #Allow user access to temporary drive
-chmod 777 /mnt
+chmod -f 777 /mnt
 
 #Configure nextflow environment vars
 echo export NXF_ASSETS=$4/assets >> ~/.bash_profile
