@@ -2,38 +2,17 @@
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "newStorageAccountName": {
+      "value": "nextflowdockerstorage"
+    },
     "adminUsername": {
-      "value": "USERNAME"
+      "value": "nextflowDockerAdmin"
     },
     "adminPassword": {
-      "value": "GENAPASSWORD"
+      "value": "GEN-PASSWORD"
     },
-    "vmssName": {
-      "value": "VMSSUNIQUENAME"
-    },
-    "instanceCount": {
-      "value": 2
-    },
-    "existingVnetResourceGroupName": {
-      "value": "VNETDETAILS"
-    },
-    "existingVnetName": {
-      "value": "VNETDETILS"
-    },
-    "existingSubnetName": {
-      "value": "default"
-    },
-    "storageAccountName": {
-      "value": "STORAGENAME"
-    },
-    "storageAccountKey": {
-      "value": "STORAGEKEY"
-    },
-    "shareName": {
-      "value": "shared"
-    },    
-    "mountpointPath": {
-      "value": "/mnt/shared"
+    "dnsNameForPublicIP": {
+      "value": "nextflowdockerdns"
     }
   }
 }

@@ -2,6 +2,18 @@
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "newStorageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique DNS Name for the Storage Account where the Virtual Machine's disks will be placed."
+      }
+    },
+    "dnsNameForPublicIP": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique DNS Name for the Public IP used to access the Docker Virtual Machine (master node)."
+      }
+    },
     "vmSku": {
       "type": "string",
       "defaultValue": "Standard_D1",
@@ -19,7 +31,7 @@
     "instanceCount": {
       "type": "int",
       "metadata": {
-        "description": "Number of VM instances (100 or less)."
+        "description": "Number of cluster VM instances (100 or less)."
       },
       "defaultValue": 2,
       "maxValue": 100
@@ -36,31 +48,31 @@
         "description": "Admin password on all VMs."
       }
     },
-    "existingVnetResourceGroupName": {
+    "resourceGroupName": {
       "type": "string",
       "metadata": {
-        "description": "Name of the resourceGroup for the existing virtual network to deploy the scale set into."
+        "description": "Name of the resource group for the virtual network to deploy the scale set into."
       }
     },
-    "existingVnetName": {
+    "vnetName": {
       "type": "string",
       "metadata": {
-        "description": "vName of the existing virtual network to deploy the scale set into."
+        "description": "vName of the virtual network to deploy the scale set into."
       }
     },
-    "existingSubnetName": {
+    "subnetName": {
       "type": "string",
       "metadata": {
-        "description": "Name of the existing subnet to deploy the scale set into."
+        "description": "Name of the subnet to deploy the scale set into."
       }
     },
-    "storageAccountName": {
+    "fileshareStorageAccountName": {
       "type": "string",
       "metadata": {
         "description": "Storage account name for Azure file share."
       }
     },
-    "storageAccountKey": {
+    "fileshareStorageAccountKey": {
       "type": "securestring",
       "metadata": {
         "description": "Storage account key for Azure file share."
@@ -78,9 +90,185 @@
       "metadata": {
         "description": "Path on VM to mount file share - will also link to user home dir."
       }
+    },
+    "ubuntuOSVersion": {
+      "type": "string",
+      "defaultValue": "16.04-LTS",
+      "metadata": {
+        "description": "The Ubuntu version for deploying the Docker containers. This will pick a fully patched image of this given Ubuntu version. Allowed values: 14.04.4-LTS, 15.10, 16.04.0-LTS"
+      },
+      "allowedValues": [
+        "14.04.4-LTS",
+        "15.10",
+        "16.04-LTS"
+      ]
     }
   },
+  "variables": {
+    "jumpboxOSDiskName": "jumpboxOsdisk",
+    "jumpboxNICName": "jumpboxNIC",
+    "imagePublisher": "Canonical",
+    "imageOffer": "UbuntuServer",
+    "extensionName": "jumpboxExtension",
+    "addressPrefix": "10.0.0.0/16",
+    "subnetPrefix": "10.0.0.0/24",
+    "storageAccountType": "Standard_LRS",
+    "publicIPAddressName": "jumpboxPublicIP",
+    "publicIPAddressType": "Dynamic",
+    "vmStorageAccountContainerName": "vhds",
+    "jumpboxVMName": "jumpboxVM",
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('vnetName'))]",
+    "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnetName'))]"
+  },
   "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[parameters('newStorageAccountName')]",
+      "apiVersion": "2016-01-01",
+      "location": "[resourceGroup().location]",
+      "kind": "Storage",
+      "sku": {
+        "name": "[variables('storageAccountType')]"
+      }
+    },
+    {
+      "apiVersion": "2017-04-01",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('publicIPAddressName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('dnsNameForPublicIP')]"
+        }
+      }
+    },
+    {
+      "apiVersion": "2017-04-01",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[parameters('vnetName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('addressPrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[parameters('subnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('subnetPrefix')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2017-04-01",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('jumpboxNICName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
+        "[concat('Microsoft.Network/virtualNetworks/', parameters('vnetName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
+              },
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2017-03-30",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[variables('jumpboxVMName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', parameters('newStorageAccountName'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSku')]"
+        },
+        "osProfile": {
+          "computerName": "[variables('jumpboxVMName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('imagePublisher')]",
+            "offer": "[variables('imageOffer')]",
+            "sku": "[parameters('ubuntuOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "osdisk1",
+            "vhd": {
+              "uri": "[concat('http://',parameters('newStorageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('jumpboxOSDiskName'),'.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('jumpboxNICName'))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('jumpboxVMName'),'/', variables('extensionName'))]",
+      "apiVersion": "2017-03-30",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('jumpboxVMName'))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Azure.Extensions",
+        "type": "DockerExtension",
+        "typeHandlerVersion": "1.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": { }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('jumpboxVMName'),'/newuserscript')]",
+      "apiVersion": "2015-05-01-preview",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('jumpboxVMName'))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Azure.Extensions",
+        "type": "CustomScript",
+        "typeHandlerVersion": "2.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+              "https://raw.githubusercontent.com/anraman/dockerJavaARM/master/installJava.sh"
+          ],
+          "commandToExecute": "sh installJava.sh"
+        }
+      }
+    },
     {
       "type": "Microsoft.Compute/virtualMachineScaleSets",
       "name": "[parameters('vmssName')]",
@@ -90,6 +278,9 @@
         "name": "[parameters('vmSku')]",
         "capacity": "[parameters('instanceCount')]"
       },
+      "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworks/', parameters('vnetName'))]"
+      ],
       "properties": {
         "overprovision": "false",
         "upgradePolicy": {
@@ -102,9 +293,9 @@
               "caching": "ReadWrite"
             },
             "imageReference": {
-              "publisher": "Canonical",
-              "offer": "UbuntuServer",
-              "sku": "16.04-LTS",
+              "publisher": "[variables('imagePublisher')]",
+              "offer": "[variables('imageOffer')]",
+              "sku": "[parameters('ubuntuOSVersion')]",
               "version": "latest"
             }
           },
@@ -124,7 +315,7 @@
                       "name": "ipconfig",
                       "properties": {
                         "subnet": {
-                          "id": "[resourceId(parameters('existingVnetResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('existingVnetName'), parameters('existingSubNetName'))]"
+                          "id": "[resourceId(parameters('resourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('subnetName'))]"
                         }
                       }
                     }
@@ -146,7 +337,7 @@
                     "fileUris": [
                       "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/master/mounter.sh"
                     ],
-                    "commandToExecute": "[concat('bash init.sh ', parameters('storageAccountName'), ' ', parameters('storageAccountKey'), ' ', parameters('shareName'), ' ', parameters('mountpointPath'))]"
+                    "commandToExecute": "[concat('bash init.sh ', parameters('fileshareStorageAccountName'), ' ', parameters('fileshareStorageAccountKey'), ' ', parameters('shareName'), ' ', parameters('mountpointPath'))]"
                   }
                 }
               },
