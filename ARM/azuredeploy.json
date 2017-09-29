@@ -233,8 +233,7 @@
         "settings": {
           "timestamp": 2113,
           "fileUris": [
-            "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/master/mounter.sh",
-            "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/master/createShare.sh"
+            "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/master/init.sh"
           ],
           "commandToExecute": "[concat('bash mounter.sh ', variables('storageAccountName'), ' ', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ' ', parameters('shareName'), ' ', parameters('mountpointPath'), ' false')]"
         }
@@ -308,7 +307,7 @@
                   "settings": {
                     "timestamp": 2115,
                     "fileUris": [
-                      "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/master/mounter.sh"
+                      "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/master/init.sh"
                     ],
                     "commandToExecute": "[concat('bash init.sh ', variables('storageAccountName'), ' \"', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, '\" ', parameters('shareName'), ' ', parameters('mountpointPath'), ' true')]"
                   }
