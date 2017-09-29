@@ -49,11 +49,15 @@ apt-get install openjdk-8-jdk -y | tee -a $LOGFILE
 #Allow user access to temporary drive
 chmod -f 777 /mnt #Todo: Review sec implications 
 
+#Todo: This will repeatedly add the same env to the file. Fix that. 
 #Configure nextflow environment vars    
 echo export NXF_ASSETS=$4/assets >> /etc/environment
 echo export NXF_WORK=$4/work >> /etc/environment
 #Use asure epherical instance drive for tmp
 echo export NXF_TEMP=/mnt >> /etc/environment
+
+#Reload environment variables in this session. 
+sed 's/^/export /' /etc/environment > /tmp/env.sh && source /tmp/env.sh
 
 #Install nextflow
 curl -s https://get.nextflow.io | bash | tee -a $LOGFILE
