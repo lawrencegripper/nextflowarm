@@ -62,21 +62,18 @@ sed 's/^/export /' /etc/environment > /tmp/env.sh && source /tmp/env.sh
 #Install nextflow
 curl -s https://get.nextflow.io | bash | tee -a $LOGFILE
 
+#Copy the binary to the path to be accessed by users
+cp ./nextflow /usr/local/bin
+chmod -f 777 /usr/local/bin/nextflow #Todo: Review sec implications 
+
+
 #If we're a node run the daemon
 if [ "$5" = true ]; then 
 
 #Run nextflow under log dir to provide easy access to logs
-NFDIR=$(pwd)
 echo "Starting cluster nextflow cluster node" | tee -a $LOGFILE
 cd $LOGFOLDER
-$NFDIR/nextflow node -bg -cluster.join path:$4/cluster
+/usr/local/bin/nextflow node -bg -cluster.join path:$4/cluster
 echo "Cluster node started" | tee -a $LOGFILE
-
-#Else we're the jumpbox
-else
-
-#Copy the binary to the path to be accessed by users on the jumpbox
-cp ./nextflow /usr/local/sbin
-chmod -f 777 /usr/local/sbin/nextflow #Todo: Review sec implications 
 
 fi
