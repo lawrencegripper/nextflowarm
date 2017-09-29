@@ -231,9 +231,9 @@
         "typeHandlerVersion": "2.0",
         "autoUpgradeMinorVersion": true,
         "settings": {
-          "timestamp": 2118,
+          "timestamp": 2119,
           "fileUris": [
-            "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/master/scripts/init.sh"
+            "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/master/Scripts/init.sh"
           ],
           "commandToExecute": "[concat('bash init.sh ', variables('storageAccountName'), ' ', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ' ', parameters('shareName'), ' ', parameters('mountpointPath'), ' false')]"
         }
@@ -305,9 +305,9 @@
                   "typeHandlerVersion": "2.0",
                   "autoUpgradeMinorVersion": true,
                   "settings": {
-                    "timestamp": 2118,
+                    "timestamp": 2119,
                     "fileUris": [
-                      "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/master/scripts/init.sh"
+                      "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/master/Scripts/init.sh"
                     ],
                     "commandToExecute": "[concat('bash init.sh ', variables('storageAccountName'), ' \"', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, '\" ', parameters('shareName'), ' ', parameters('mountpointPath'), ' true')]"
                   }
