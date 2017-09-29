@@ -332,11 +332,11 @@
   "outputs": {
     "JumpboxConnectionString": {
       "type": "string",
-      "value": "[reference(variables('publicIPAddressName')).dnsSettings.fqdn"
+      "value": "[reference(variables('publicIPAddressName')).dnsSettings.fqdn]"
     },
     "ExampleNextflowCommand": {
       "type": "string",
-      "value": "[concat('./nextflow run hello -cluster.join path:', parameters('mountpointPath'), '/cluster')]"
+      "value": "[concat('nextflow run hello -process.executor ignite -cluster.join path:', parameters('mountpointPath'), '/cluster', ' -with-timeline runtimeline.html -with-trace')]"
     }
   }
 }
