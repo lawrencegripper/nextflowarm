@@ -47,13 +47,13 @@ echo $METADATA > $4/logs/$NODENAME/node.metadata
 apt-get install openjdk-8-jdk -y | tee -a $LOGFILE
 
 #Allow user access to temporary drive
-chmod -f 777 /mnt
+chmod -f 777 /mnt #Todo: Review sec implications 
 
-#Configure nextflow environment vars
-echo export NXF_ASSETS=$4/assets >> ~/.bash_profile
-echo export NXF_WORK=$4/work >> ~/.bash_profile
+#Configure nextflow environment vars    
+echo export NXF_ASSETS=$4/assets >> /etc/environment
+echo export NXF_WORK=$4/work >> /etc/environment
 #Use asure epherical instance drive for tmp
-echo export NXF_TEMP=/mnt >> ~/.bash_profile
+echo export NXF_TEMP=/mnt >> /etc/environment
 
 #Install nextflow
 curl -s https://get.nextflow.io | bash | tee -a $LOGFILE
@@ -63,11 +63,16 @@ if [ "$5" = true ]; then
 
 #Run nextflow under log dir to provide easy access to logs
 NFDIR=$(pwd)
-
 echo "Starting cluster nextflow cluster node" | tee -a $LOGFILE
 cd $LOGFOLDER
 $NFDIR/nextflow node -bg -cluster.join path:$4/cluster
 echo "Cluster node started" | tee -a $LOGFILE
 
+#Else we're the jumpbox
+else
+
+#Copy the binary to the path to be accessed by users on the jumpbox
+cp ./nextflow /usr/local/sbin
+chmod -f 777 /usr/local/sbin/nextflow #Todo: Review sec implications 
 
 fi
