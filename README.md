@@ -1,5 +1,6 @@
 Nextflow on Azure
 ======
+[![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://azuredeploy.net/)
 
 ## What is Nextflow?
 Nextflow enables scalable and reproducible scientific workflows using software containers. It allows the adaptation of pipelines written in the most common scripting languages.
@@ -10,9 +11,9 @@ Its fluent DSL simplifies the implementation and the deployment of complex paral
 To enable native support for Nextflow on Azure.
 
 ## The Solution
-This Azure Resource Manager template and the accompanying scripts deploy an Azure Virtual Machine Scale Set hosting Docker and Nextflow for running scientific pipelines. 
+This Azure Resource Manager template and the accompanying script deploys an Azure Virtual Machine Scale Set hosting Docker and Nextflow for running scientific pipelines. 
 
-The cluster consists of one jumpbox VM (master node) plus 1-100 (limit can be lifted) slave nodes in a Scale Set, using Azure Files as shared storage. Users can submit Nextflow workstreams to the master node for running on the slave nodes.
+The cluster consists of one jumpbox VM (master node) plus 1-100 (limit can be lifted by raising a support ticket) slave nodes in a Scale Set, using Azure Files as shared storage. Users can submit Nextflow workstreams to the master node for execution on the slave nodes.
 
 ## Solution Breakdown
 * azuredeploy.json:
@@ -29,6 +30,3 @@ The cluster consists of one jumpbox VM (master node) plus 1-100 (limit can be li
     * Mounts this as a shared disk for Nextflow. This implementation supports symlinks and FIFO.
     * Installs OpenJDK
     * Installs Nextflow and configures it to use the mounted Azure Files share.
-
-
-[![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://azuredeploy.net/)

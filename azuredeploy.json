@@ -38,7 +38,7 @@
     "vnetName": {
       "type": "string",
       "metadata": {
-        "description": "vName of the virtual network to deploy the scale set into."
+        "description": "Name of the virtual network to deploy the scale set into."
       },
       "defaultValue": "nfvnet"
     },
@@ -62,24 +62,13 @@
       "metadata": {
         "description": "Path on VM to mount file share - will also link to user home dir."
       }
-    },
-    "ubuntuOSVersion": {
-      "type": "string",
-      "defaultValue": "16.04-LTS",
-      "metadata": {
-        "description": "The Ubuntu version for deploying the Docker containers. This will pick a fully patched image of this given Ubuntu version. Allowed values: 14.04.4-LTS, 15.10, 16.04.0-LTS"
-      },
-      "allowedValues": [
-        "14.04.4-LTS",
-        "15.10",
-        "16.04-LTS"
-      ]
     }
   },
   "variables": {
     "jumpboxOSDiskName": "jumpboxOsdisk",
     "jumpboxNICName": "jumpboxNIC",
     "imagePublisher": "Canonical",
+    "ubuntuOSVersion": "16.04-LTS",
     "imageOffer": "UbuntuServer",
     "extensionName": "jumpboxExtension",
     "addressPrefix": "10.0.0.0/16",
@@ -185,7 +174,7 @@
           "imageReference": {
             "publisher": "[variables('imagePublisher')]",
             "offer": "[variables('imageOffer')]",
-            "sku": "[parameters('ubuntuOSVersion')]",
+            "sku": "[variables('ubuntuOSVersion')]",
             "version": "latest"
           },
           "osDisk": {
@@ -266,7 +255,7 @@
             "imageReference": {
               "publisher": "[variables('imagePublisher')]",
               "offer": "[variables('imageOffer')]",
-              "sku": "[parameters('ubuntuOSVersion')]",
+              "sku": "[variables('ubuntuOSVersion')]",
               "version": "latest"
             }
           },
