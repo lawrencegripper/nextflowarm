@@ -48,6 +48,7 @@ CIFS_SHAREPATH=$4/cifs
 ###############
 
 #Variables
+#WARNING: NFS share currently on temporary drive. Will not persist between boots. 
 NFS_SHAREPATH=$4/nfs #Location NFS share will be mounted at
 NFS_SRV_SHAREPATH=/mnt/sharesource #Location of the NFS share on server (master node)
 
@@ -60,8 +61,7 @@ if [ "$5" != true ]; then #If we're the master node create the img file
 
     #Install CIFS and JQ (used by this script)
     log "Installing NFS Server" /tmp/nfinstall.log 
-    apt-get -y update | tee /tmp/nfinstall.log
-    apt-get install nfs-kernel-server jq -y | tee -a /tmp/nfinstall.log
+    apt-get install nfs-kernel-server -y | tee -a /tmp/nfinstall.log
 
     #TODO: Review permissions and security
     mkdir $NFS_SRV_SHAREPATH
@@ -70,7 +70,7 @@ if [ "$5" != true ]; then #If we're the master node create the img file
 
     echo "$NFS_SRV_SHAREPATH    $ALLOWEDSUBNET(rw,sync,no_subtree_check)" > /etc/exports 
 
-    systemctl restart nfs-kernel-server
+    systemctl restart nfs-common
 
     touch $CIFS_SHAREPATH/.done_creating_nfs_share
 fi
@@ -81,10 +81,19 @@ do
     sleep 5
 done
 
-log "Mounting NFS share" /tmp/nfinstall.log 
-mkdir -p $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
-mount jumpboxvm:$NFS_SRV_SHAREPATH $NFS_SHAREPATH
-chmod 777 $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
+if [ "$5" = true ]; then
+    log "NODE: Install NFS client tools" /tmp/nfinstall.log 
+    apt-get install nfs-kernel-server -y | tee -a /tmp/nfinstall.log
+
+    log "NODE: Mounting NFS share" /tmp/nfinstall.log 
+    mkdir -p $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
+    mount jumpboxvm:$NFS_SRV_SHAREPATH $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
+    chmod 777 $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
+else
+    #symlink the share location on the master so paths match nodes
+    log "MASTER: Symlink NFS share" /tmp/nfinstall.log 
+
+fi
 
 ###############
 # end
@@ -110,8 +119,6 @@ log "Installing JAVA" $LOGFILE
 apt-get install openjdk-8-jdk -y | tee -a $LOGFILE
 
 log "Setup Filesystem and Environment Variables" $LOGFILE
-#Allow user access to temporary drive
-chmod -f 777 /mnt #Todo: Review sec implications 
 
 #Todo: This will repeatedly add the same env to the file. Fix that. 
 #Configure nextflow environment vars    
@@ -120,6 +127,9 @@ echo export NXF_WORK=$NFS_SHAREPATH/work >> /etc/environment
 #Use asure epherical instance drive for tmp
 mkdir -p /mnt/nftemp
 echo export NXF_TEMP=/mnt/nftemp >> /etc/environment
+
+#Allow user access to temporary drive
+chmod -f 777 /mnt/nftemp #Todo: Review sec implications 
 
 #Reload environment variables in this session. 
 sed 's/^/export /' /etc/environment > /tmp/env.sh && source /tmp/env.sh
