@@ -25,8 +25,35 @@ apt-get install azure-cli -y
 az storage share create --name $3 --quota 2048 --connection-string "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=$1;AccountKey=$2" | tee -a /tmp/nfinstall.log
 
 #Mount the share with symlink and fifo support: see https://wiki.samba.org/index.php/SMB3-Linux
-mkdir -p $4 | tee -a /tmp/nfinstall.log
-mount -t cifs //$1.file.core.windows.net/$3 $4 -o vers=3.0,username=$1,password=$2,dir_mode=0777,file_mode=0777,mfsymlinks,sfu | tee -a /tmp/nfinstall.log
+mkdir -p $4/cifs | tee -a /tmp/nfinstall.log
+mount -t cifs //$1.file.core.windows.net/$3 $4/cifs -o vers=3.0,username=$1,password=$2,dir_mode=0777,file_mode=0777,mfsymlinks,sfu | tee -a /tmp/nfinstall.log
+
+###############
+# Workaround for Azure Files Posix support
+#   This attempts to create a .img file, to act as shared storage, and stores it on Azure Files share. 
+#   This enables full posix support for fifo, symlinks etc. See https://github.com/lawrencegripper/nextflowarm/issues/5
+#   Create the file and format on the master node, other nodes wait for it to complete
+###############
+if [ "$5" != true ]; then #If we're the master node create the img file
+then 
+    touch .creating
+    dd if=/dev/zero of=share.img bs=1M count=50000 | tee -a /tmp/nfinstall.log
+    mkfs ext3 -F $4/cifs/shared.img | tee -a /tmp/nfinstall.log
+    touch .done
+fi
+
+while [ ! -f $4/cifs/.done ]
+do
+  sleep 5
+done
+
+mkdir -p $4/img | tee -a /tmp/nfinstall.log
+mount -o loop,rw,sync $4/cifs/shared.img $4/img | tee -a /tmp/nfinstall.log
+chmod 777 $4/img | tee -a /tmp/nfinstall.log
+
+###############
+# end
+###############
 
 #Write instance details into share /cluster for debugging
 METADATA=$(curl -H Metadata:true http://169.254.169.254/metadata/instance?api-version=2017-04-02)
