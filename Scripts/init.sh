@@ -6,14 +6,24 @@
 # $4 = mountpoint path
 # $5 = should run as nf node
 
+log () {
+    echo "-------------------------" | tee -a $2
+    date -Is | tee -a /tmp/nfinstall.log
+    echo $1 | tee -a /tmp/nfinstall.log
+    echo "-------------------------" | tee -a $2    
+}
+
 DEBIAN_FRONTEND="noninteractive"
 
 #Install CIFS and JQ (used by this script)
+log "Installing CIFS and JQ" /tmp/nfinstall.log 
 apt-get -y update | tee /tmp/nfinstall.log
 apt-get install cifs-utils jq -y | tee -a /tmp/nfinstall.log
 
 
+
 #Create azure share if it doesn't already exist
+log "Installing AzureCLI and Mounting Azure Files Share" /tmp/nfinstall.log 
 echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ wheezy main" | \
      sudo tee /etc/apt/sources.list.d/azure-cli.list 
 
@@ -26,7 +36,9 @@ az storage share create --name $3 --quota 2048 --connection-string "DefaultEndpo
 
 #Mount the share with symlink and fifo support: see https://wiki.samba.org/index.php/SMB3-Linux
 mkdir -p $4/cifs | tee -a /tmp/nfinstall.log
-mount -t cifs //$1.file.core.windows.net/$3 $4/cifs -o vers=3.0,username=$1,password=$2,dir_mode=0777,file_mode=0777,mfsymlinks,sfu | tee -a /tmp/nfinstall.log
+# CIFS settings from Azure CloudShell container which uses .img approach. 
+mount -t cifs //$1.file.core.windows.net/$3 $4/cifs -o vers=2.1,username=$1,password=$2,sec=ntlmssp,cache=strict,domain=X,uid=0,noforceuid,gid=0,noforcegid,file_mode=0777,dir_mode=0777,nounix,serverino,mapposix,rsize=1048576,wsize=1048576,echo_interval=60,actimeo=1 | tee -a /tmp/nfinstall.log
+SHAREPATH=$4/cifs
 
 ###############
 # Workaround for Azure Files Posix support
@@ -34,22 +46,29 @@ mount -t cifs //$1.file.core.windows.net/$3 $4/cifs -o vers=3.0,username=$1,pass
 #   This enables full posix support for fifo, symlinks etc. See https://github.com/lawrencegripper/nextflowarm/issues/5
 #   Create the file and format on the master node, other nodes wait for it to complete
 ###############
-if [ "$5" != true ]; then #If we're the master node create the img file
-then 
-    touch .creating
-    dd if=/dev/zero of=share.img bs=1M count=50000 | tee -a /tmp/nfinstall.log
-    mkfs ext3 -F $4/cifs/shared.img | tee -a /tmp/nfinstall.log
-    touch .done
+mkdir -p $SHAREPATH/imgs/ | tee -a /tmp/nfinstall.log
+SHAREIMGFILE=$SHAREPATH/imgs/share.img
+if [ "$5" != true ]; then #If we're the master node create the img file 
+    log "MASTER: Creating .IMG file for shared partition in Azure Files Share" /tmp/nfinstall.log 
+
+    touch $SHAREPATH/.creating
+    dd if=/dev/zero of=$SHAREIMGFILE bs=1 count=0 seek=10G | tee -a /tmp/nfinstall.log
+    mkfs ext2 -F $SHAREIMGFILE | tee -a /tmp/nfinstall.log
+
+    touch $SHAREPATH/.done
 fi
 
-while [ ! -f $4/cifs/.done ]
+while [ ! -f $SHAREPATH/.done ]
 do
-  sleep 5
+    log "NODE: Waiting for .IMG File to be created" /tmp/nfinstall.log 
+    sleep 5
 done
 
+log "Mounting .IMG file" /tmp/nfinstall.log 
 mkdir -p $4/img | tee -a /tmp/nfinstall.log
-mount -o loop,rw,sync $4/cifs/shared.img $4/img | tee -a /tmp/nfinstall.log
+mount -o loop,rw,sync $SHAREIMGFILE $4/img | tee -a /tmp/nfinstall.log
 chmod 777 $4/img | tee -a /tmp/nfinstall.log
+SHAREIMGMOUNT=$4/img
 
 ###############
 # end
@@ -60,26 +79,28 @@ METADATA=$(curl -H Metadata:true http://169.254.169.254/metadata/instance?api-ve
 NODENAME=$(echo $METADATA | jq -r '.compute.name')
 
 #Create a log folder for each node
-mkdir -p $4/logs/$NODENAME | tee -a /tmp/nfinstall.log
+mkdir -p $SHAREPATH/logs/$NODENAME | tee -a /tmp/nfinstall.log
 
 #Copy logs used so far
-cp /tmp/nfinstall.log $4/logs/$NODENAME/
-LOGFOLDER=$4/logs/$NODENAME/
-LOGFILE=$4/logs/$NODENAME/nfinstall.log
+cp /tmp/nfinstall.log $SHAREPATH/logs/$NODENAME/
+LOGFOLDER=$SHAREPATH/logs/$NODENAME/
+LOGFILE=$SHAREPATH/logs/$NODENAME/nfinstall.log
 
 #Track the metadata for the node for debugging
-echo $METADATA > $4/logs/$NODENAME/node.metadata 
+echo $METADATA > $SHAREPATH/logs/$NODENAME/node.metadata 
 
 #Install java
+log "Installing JAVA" $LOGFILE
 apt-get install openjdk-8-jdk -y | tee -a $LOGFILE
 
+log "Setup Filesystem and Environment Variables" $LOGFILE
 #Allow user access to temporary drive
 chmod -f 777 /mnt #Todo: Review sec implications 
 
 #Todo: This will repeatedly add the same env to the file. Fix that. 
 #Configure nextflow environment vars    
-echo export NXF_ASSETS=$4/assets >> /etc/environment
-echo export NXF_WORK=$4/work >> /etc/environment
+echo export NXF_ASSETS=$SHAREIMGMOUNT/assets >> /etc/environment
+echo export NXF_WORK=$SHAREIMGMOUNT/work >> /etc/environment
 #Use asure epherical instance drive for tmp
 echo export NXF_TEMP=/mnt >> /etc/environment
 
@@ -87,20 +108,22 @@ echo export NXF_TEMP=/mnt >> /etc/environment
 sed 's/^/export /' /etc/environment > /tmp/env.sh && source /tmp/env.sh
 
 #Install nextflow
+log "Installing nextflow" $LOGFILE
 curl -s https://get.nextflow.io | bash | tee -a $LOGFILE
 
 #Copy the binary to the path to be accessed by users
 cp ./nextflow /usr/local/bin
 chmod -f 777 /usr/local/bin/nextflow #Todo: Review sec implications 
 
+log "Done with Install. "
 
 #If we're a node run the daemon
 if [ "$5" = true ]; then 
 
 #Run nextflow under log dir to provide easy access to logs
-echo "Starting cluster nextflow cluster node" | tee -a $LOGFILE
+log "NODE: Starting cluster nextflow cluster node" $LOGFILE
 cd $LOGFOLDER
-/usr/local/bin/nextflow node -bg -cluster.join path:$4/cluster
-echo "Cluster node started" | tee -a $LOGFILE
+/usr/local/bin/nextflow node -bg -cluster.join path:$SHAREPATH/cluster
+log "NODE: Cluster node started" $LOGFILE
 
 fi
