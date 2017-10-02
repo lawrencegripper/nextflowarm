@@ -91,9 +91,7 @@ if [ "$5" = true ]; then
     chmod 777 $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
 else
     #symlink the share location on the master so paths match nodes
-    log "MASTER: Symlink NFS share" /tmp/nfinstall.log 
-    ln -s $NFS_SRV_SHAREPATH $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
-    chmod 777 $NFS_SHAREPATH  | tee -a /tmp/nfinstall.log
+    log "MASTER: Symlink NFS share" /tmp/nfinstall.log
 fi
 
 ###############
@@ -124,7 +122,12 @@ log "Setup Filesystem and Environment Variables" $LOGFILE
 #Todo: This will repeatedly add the same env to the file. Fix that. 
 #Configure nextflow environment vars    
 echo export NXF_ASSETS=$NFS_SHAREPATH/assets >> /etc/environment
-echo export NXF_WORK=$NFS_SHAREPATH/work >> /etc/environment
+
+if [ "$5" = true ]; then #If we're a node use the NFS mount path
+    echo export NXF_WORK=$NFS_SHAREPATH/work >> /etc/environment
+else #If we're the master use the local location of the NFS share
+    echo export NXF_WORK=$NFS_SRV_SHAREPATH/work >> /etc/environment
+fi
 #Use asure epherical instance drive for tmp
 mkdir -p /mnt/nftemp
 echo export NXF_TEMP=/mnt/nftemp >> /etc/environment
