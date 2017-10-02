@@ -8,8 +8,8 @@
 
 log () {
     echo "-------------------------" | tee -a $2
-    date -Is | tee -a /tmp/nfinstall.log
-    echo $1 | tee -a /tmp/nfinstall.log
+    date -Is | tee -a $2
+    echo $1 | tee -a $2
     echo "-------------------------" | tee -a $2    
 }
 
@@ -66,7 +66,7 @@ done
 
 log "Mounting .IMG file" /tmp/nfinstall.log 
 mkdir -p $4/img | tee -a /tmp/nfinstall.log
-mount -o loop,rw,sync $SHAREIMGFILE $4/img | tee -a /tmp/nfinstall.log
+mount -o rw,relatime,block_validity,barrier,user_xattr,acl $SHAREIMGFILE $4/img | tee -a /tmp/nfinstall.log
 chmod 777 $4/img | tee -a /tmp/nfinstall.log
 SHAREIMGMOUNT=$4/img
 
@@ -102,7 +102,8 @@ chmod -f 777 /mnt #Todo: Review sec implications
 echo export NXF_ASSETS=$SHAREIMGMOUNT/assets >> /etc/environment
 echo export NXF_WORK=$SHAREIMGMOUNT/work >> /etc/environment
 #Use asure epherical instance drive for tmp
-echo export NXF_TEMP=/mnt >> /etc/environment
+mkdir -p /mnt/nftemp
+echo export NXF_TEMP=/mnt/nftemp >> /etc/environment
 
 #Reload environment variables in this session. 
 sed 's/^/export /' /etc/environment > /tmp/env.sh && source /tmp/env.sh
