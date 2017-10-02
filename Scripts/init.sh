@@ -38,7 +38,7 @@ az storage share create --name $3 --quota 2048 --connection-string "DefaultEndpo
 mkdir -p $4/cifs | tee -a /tmp/nfinstall.log
 # CIFS settings from Azure CloudShell container which uses .img approach. 
 mount -t cifs //$1.file.core.windows.net/$3 $4/cifs -o vers=2.1,username=$1,password=$2,sec=ntlmssp,cache=strict,domain=X,uid=0,noforceuid,gid=0,noforcegid,file_mode=0777,dir_mode=0777,nounix,serverino,mapposix,rsize=1048576,wsize=1048576,echo_interval=60,actimeo=1 | tee -a /tmp/nfinstall.log
-SHAREPATH=$4/cifs
+CIFS_SHAREPATH=$4/cifs
 
 ###############
 # Workaround for Azure Files Posix support
@@ -46,29 +46,45 @@ SHAREPATH=$4/cifs
 #   This enables full posix support for fifo, symlinks etc. See https://github.com/lawrencegripper/nextflowarm/issues/5
 #   Create the file and format on the master node, other nodes wait for it to complete
 ###############
-mkdir -p $SHAREPATH/imgs/ | tee -a /tmp/nfinstall.log
-SHAREIMGFILE=$SHAREPATH/imgs/share.img
+
+#Variables
+NFS_SHAREPATH=$4/nfs #Location NFS share will be mounted at
+NFS_SRV_SHAREPATH=/mnt/sharesource #Location of the NFS share on server (master node)
+
+mkdir -p $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
 if [ "$5" != true ]; then #If we're the master node create the img file 
-    log "MASTER: Creating .IMG file for shared partition in Azure Files Share" /tmp/nfinstall.log 
+    log "MASTER: Creating NFS share" /tmp/nfinstall.log 
 
-    touch $SHAREPATH/.creating
-    dd if=/dev/zero of=$SHAREIMGFILE bs=1 count=0 seek=10G | tee -a /tmp/nfinstall.log
-    mkfs ext2 -F $SHAREIMGFILE | tee -a /tmp/nfinstall.log
+    #Variables
+    ALLOWEDSUBNET=10.0.0.0/24
 
-    touch $SHAREPATH/.done
+    #Install CIFS and JQ (used by this script)
+    log "Installing NFS Server" /tmp/nfinstall.log 
+    apt-get -y update | tee /tmp/nfinstall.log
+    apt-get install nfs-kernel-server jq -y | tee -a /tmp/nfinstall.log
+
+    #TODO: Review permissions and security
+    mkdir $NFS_SRV_SHAREPATH
+    chown nobody:nogroup $NFS_SRV_SHAREPATH
+    chmod 777 $NFS_SRV_SHAREPATH
+
+    echo "$NFS_SRV_SHAREPATH    $ALLOWEDSUBNET(rw,sync,no_subtree_check)" > /etc/exports 
+
+    systemctl restart nfs-kernel-server
+
+    touch $CIFS_SHAREPATH/.done_creating_nfs_share
 fi
 
-while [ ! -f $SHAREPATH/.done ]
+while [ ! -f $CIFS_SHAREPATH/.done_creating_nfs_share ]
 do
-    log "NODE: Waiting for .IMG File to be created" /tmp/nfinstall.log 
+    log "NODE: Waiting for NFS share to be created" /tmp/nfinstall.log 
     sleep 5
 done
 
-log "Mounting .IMG file" /tmp/nfinstall.log 
-mkdir -p $4/img | tee -a /tmp/nfinstall.log
-mount -o rw,relatime,block_validity,barrier,user_xattr,acl $SHAREIMGFILE $4/img | tee -a /tmp/nfinstall.log
-chmod 777 $4/img | tee -a /tmp/nfinstall.log
-SHAREIMGMOUNT=$4/img
+log "Mounting NFS share" /tmp/nfinstall.log 
+mkdir -p $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
+mount jumpboxvm:$NFS_SRV_SHAREPATH $NFS_SHAREPATH
+chmod 777 $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
 
 ###############
 # end
@@ -79,15 +95,15 @@ METADATA=$(curl -H Metadata:true http://169.254.169.254/metadata/instance?api-ve
 NODENAME=$(echo $METADATA | jq -r '.compute.name')
 
 #Create a log folder for each node
-mkdir -p $SHAREPATH/logs/$NODENAME | tee -a /tmp/nfinstall.log
+mkdir -p $CIFS_SHAREPATH/logs/$NODENAME | tee -a /tmp/nfinstall.log
 
 #Copy logs used so far
-cp /tmp/nfinstall.log $SHAREPATH/logs/$NODENAME/
-LOGFOLDER=$SHAREPATH/logs/$NODENAME/
-LOGFILE=$SHAREPATH/logs/$NODENAME/nfinstall.log
+cp /tmp/nfinstall.log $CIFS_SHAREPATH/logs/$NODENAME/
+LOGFOLDER=$CIFS_SHAREPATH/logs/$NODENAME/
+LOGFILE=$CIFS_SHAREPATH/logs/$NODENAME/nfinstall.log
 
 #Track the metadata for the node for debugging
-echo $METADATA > $SHAREPATH/logs/$NODENAME/node.metadata 
+echo $METADATA > $CIFS_SHAREPATH/logs/$NODENAME/node.metadata 
 
 #Install java
 log "Installing JAVA" $LOGFILE
@@ -99,8 +115,8 @@ chmod -f 777 /mnt #Todo: Review sec implications
 
 #Todo: This will repeatedly add the same env to the file. Fix that. 
 #Configure nextflow environment vars    
-echo export NXF_ASSETS=$SHAREIMGMOUNT/assets >> /etc/environment
-echo export NXF_WORK=$SHAREIMGMOUNT/work >> /etc/environment
+echo export NXF_ASSETS=$NFS_SHAREPATH/assets >> /etc/environment
+echo export NXF_WORK=$NFS_SHAREPATH/work >> /etc/environment
 #Use asure epherical instance drive for tmp
 mkdir -p /mnt/nftemp
 echo export NXF_TEMP=/mnt/nftemp >> /etc/environment
@@ -124,7 +140,7 @@ if [ "$5" = true ]; then
 #Run nextflow under log dir to provide easy access to logs
 log "NODE: Starting cluster nextflow cluster node" $LOGFILE
 cd $LOGFOLDER
-/usr/local/bin/nextflow node -bg -cluster.join path:$SHAREPATH/cluster
+/usr/local/bin/nextflow node -bg -cluster.join path:$CIFS_SHAREPATH/cluster
 log "NODE: Cluster node started" $LOGFILE
 
 fi
