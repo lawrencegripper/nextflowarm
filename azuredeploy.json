@@ -220,7 +220,7 @@
         "typeHandlerVersion": "2.0",
         "autoUpgradeMinorVersion": true,
         "settings": {
-          "timestamp": 2119,
+          "timestamp": 2120,
           "fileUris": [
             "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/master/Scripts/init.sh"
           ],

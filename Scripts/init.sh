@@ -64,15 +64,15 @@ if [ "$5" != true ]; then #If we're the master node create the img file
     apt-get install nfs-kernel-server -y | tee -a /tmp/nfinstall.log
 
     #TODO: Review permissions and security
-    mkdir $NFS_SRV_SHAREPATH
-    chown nobody:nogroup $NFS_SRV_SHAREPATH
-    chmod 777 $NFS_SRV_SHAREPATH
+    mkdir $NFS_SRV_SHAREPATH | tee -a /tmp/nfinstall.log
+    chown nobody:nogroup $NFS_SRV_SHAREPATH | tee -a /tmp/nfinstall.log
+    chmod 777 $NFS_SRV_SHAREPATH | tee -a /tmp/nfinstall.log
 
     echo "$NFS_SRV_SHAREPATH    $ALLOWEDSUBNET(rw,sync,no_subtree_check)" > /etc/exports 
 
-    systemctl restart nfs-common
+    systemctl restart nfs-kernel-server | tee -a /tmp/nfinstall.log
 
-    touch $CIFS_SHAREPATH/.done_creating_nfs_share
+    touch $CIFS_SHAREPATH/.done_creating_nfs_share | tee -a /tmp/nfinstall.log
 fi
 
 while [ ! -f $CIFS_SHAREPATH/.done_creating_nfs_share ]
@@ -92,7 +92,8 @@ if [ "$5" = true ]; then
 else
     #symlink the share location on the master so paths match nodes
     log "MASTER: Symlink NFS share" /tmp/nfinstall.log 
-
+    ln -s $NFS_SRV_SHAREPATH $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
+    chmod 777 $NFS_SHAREPATH  | tee -a /tmp/nfinstall.log
 fi
 
 ###############
