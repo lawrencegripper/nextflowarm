@@ -11,6 +11,9 @@ Its fluent DSL simplifies the implementation and the deployment of complex paral
 ## What is the Purpose of this Project?
 To enable native support for Nextflow on Azure.
 
+## What is the status of the Project?
+Currently this is a work in progress, see the issues tab to understand limitations. 
+
 ## The Solution
 This Azure Resource Manager template and the accompanying script deploys an Azure Virtual Machine Scale Set hosting Docker and Nextflow for running scientific pipelines. 
 
@@ -34,7 +37,7 @@ The cluster consists of one jumpbox VM (master node) plus 1-100 (limit can be li
     
 ## Deploying 
 
-# GUI
+### GUI
 
 Click the 'Deploy to Azure' button and follow the steps. 
 On step 3, once the resources are deployed, you'll see a 'Manage your resources' button. 
