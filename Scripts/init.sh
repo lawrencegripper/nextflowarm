@@ -14,11 +14,6 @@ log () {
     echo "-------------------------" | tee -a $2    
 }
 
-DEBIAN_FRONTEND="noninteractive"
-
-#TODO: Used to ensure network available. Replace with network wait. 
-sleep 25
-
 #Install CIFS and JQ (used by this script)
 log "Installing CIFS and JQ" /tmp/nfinstall.log 
 apt-get -y update | tee /tmp/nfinstall.log
