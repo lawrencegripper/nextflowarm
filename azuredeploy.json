@@ -208,7 +208,7 @@
     },
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(variables('jumpboxVMName'),'/newuserscript')]",
+      "name": "[concat(variables('jumpboxVMName'),'/nfinitscript')]",
       "apiVersion": "2015-05-01-preview",
       "location": "[resourceGroup().location]",
       "dependsOn": [
@@ -238,6 +238,7 @@
         "capacity": "[parameters('instanceCount')]"
       },
       "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('jumpboxVMName'))]",        
         "[concat('Microsoft.Network/virtualNetworks/', parameters('vnetName'))]",
         "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
       ],
