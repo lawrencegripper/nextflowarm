@@ -224,7 +224,7 @@
           "fileUris": [
             "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/master/Scripts/init.sh"
           ],
-          "commandToExecute": "[concat('bash init.sh ', variables('storageAccountName'), ' ', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ' ', parameters('shareName'), ' ', parameters('mountpointPath'), ' false')]"
+          "commandToExecute": "[concat('bash init.sh ', variables('storageAccountName'), ' ', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ' ', parameters('shareName'), ' ', parameters('mountpointPath'), ' false', parameters('adminUsername'))]"
         }
       }
     },
@@ -298,7 +298,7 @@
                     "fileUris": [
                       "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/master/Scripts/init.sh"
                     ],
-                    "commandToExecute": "[concat('bash init.sh ', variables('storageAccountName'), ' \"', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, '\" ', parameters('shareName'), ' ', parameters('mountpointPath'), ' true')]"
+                    "commandToExecute": "[concat('bash init.sh ', variables('storageAccountName'), ' \"', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, '\" ', parameters('shareName'), ' ', parameters('mountpointPath'), ' true', parameters('adminUsername'))]"
                   }
                 }
               },

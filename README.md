@@ -31,3 +31,14 @@ The cluster consists of one jumpbox VM (master node) plus 1-100 (limit can be li
     * Mounts this as a shared disk for Nextflow. This implementation supports symlinks and FIFO.
     * Installs OpenJDK
     * Installs Nextflow and configures it to use the mounted Azure Files share.
+
+## Debugging Cluster
+
+The cluster is created as a 'Deployment' under a resource group. If issues occur, the deployment will provide logs and error details. This can be access as follows in the portal:
+
+
+
+In most cases a good first step is to delete the resource group and redeploy to rule out transient issues.  
+
+In addition to this, logs are created during the setup of the nodes and master. These are stored on the storage account created for the cluster. You easily access these by install [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/) and browsing the content under '[ResourceGroupUsed]/nfstoragexxxxxxx/File Shares/sharedstorage/logs'. Here is an example:
+

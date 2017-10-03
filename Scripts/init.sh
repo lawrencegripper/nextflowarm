@@ -5,6 +5,7 @@
 # $3 = Azure file share name
 # $4 = mountpoint path
 # $5 = should run as nf node
+# $6 = username of nextflow user
 
 log () {
     echo "-------------------------" | tee -a $2
@@ -89,9 +90,6 @@ if [ "$5" = true ]; then
     mkdir -p $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
     mount jumpboxvm:$NFS_SHAREPATH $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
     chmod 777 $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
-else
-    #symlink the share location on the master so paths match nodes
-    log "MASTER: Symlink NFS share" /tmp/nfinstall.log
 fi
 
 ###############
@@ -150,8 +148,9 @@ if [ "$5" = true ]; then
 
 #Run nextflow under log dir to provide easy access to logs
 log "NODE: Starting cluster nextflow cluster node" $LOGFILE
-cd $LOGFOLDER
-/usr/local/bin/nextflow node -bg -cluster.join path:$CIFS_SHAREPATH/cluster
+
+runuser -l $6 -c 'cd $LOGFOLDER && /usr/local/bin/nextflow node -bg -cluster.join path:$CIFS_SHAREPATH/cluster'
+#/usr/local/bin/nextflow node -bg -cluster.join path:$CIFS_SHAREPATH/cluster
 log "NODE: Cluster node started" $LOGFILE
 
 fi
