@@ -64,11 +64,11 @@ if [ "$5" != true ]; then #If we're the master node create the img file
     apt-get install nfs-kernel-server -y | tee -a /tmp/nfinstall.log
 
     #TODO: Review permissions and security
-    mkdir $NFS_SRV_SHAREPATH | tee -a /tmp/nfinstall.log
-    chown nobody:nogroup $NFS_SRV_SHAREPATH | tee -a /tmp/nfinstall.log
-    chmod 777 $NFS_SRV_SHAREPATH | tee -a /tmp/nfinstall.log
+    mkdir $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
+    chown nobody:nogroup $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
+    chmod 777 $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
 
-    echo "$NFS_SRV_SHAREPATH    $ALLOWEDSUBNET(rw,sync,no_subtree_check)" > /etc/exports 
+    echo "$NFS_SHAREPATH    $ALLOWEDSUBNET(rw,sync,no_subtree_check)" > /etc/exports 
 
     systemctl restart nfs-kernel-server | tee -a /tmp/nfinstall.log
 
@@ -87,7 +87,7 @@ if [ "$5" = true ]; then
 
     log "NODE: Mounting NFS share" /tmp/nfinstall.log 
     mkdir -p $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
-    mount jumpboxvm:$NFS_SRV_SHAREPATH $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
+    mount jumpboxvm:$NFS_SHAREPATH $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
     chmod 777 $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
 else
     #symlink the share location on the master so paths match nodes
@@ -122,13 +122,9 @@ log "Setup Filesystem and Environment Variables" $LOGFILE
 #Todo: This will repeatedly add the same env to the file. Fix that. 
 #Configure nextflow environment vars    
 
-if [ "$5" = true ]; then #If we're a node use the NFS mount path
     echo export NXF_WORK=$NFS_SHAREPATH/work >> /etc/environment
     echo export NXF_ASSETS=$NFS_SHAREPATH/assets >> /etc/environment
-else #If we're the master use the local location of the NFS share
-    echo export NXF_WORK=$NFS_SRV_SHAREPATH/work >> /etc/environment
-    echo export NXF_ASSETS=$NFS_SRV_SHAREPATH/assets >> /etc/environment
-fi
+
 #Use asure epherical instance drive for tmp
 mkdir -p /mnt/nftemp
 echo export NXF_TEMP=/mnt/nftemp >> /etc/environment

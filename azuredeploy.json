@@ -220,7 +220,7 @@
         "typeHandlerVersion": "2.0",
         "autoUpgradeMinorVersion": true,
         "settings": {
-          "timestamp": 2120,
+          "timestamp": 2121,
           "fileUris": [
             "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/master/Scripts/init.sh"
           ],
@@ -294,7 +294,7 @@
                   "typeHandlerVersion": "2.0",
                   "autoUpgradeMinorVersion": true,
                   "settings": {
-                    "timestamp": 2119,
+                    "timestamp": 2120,
                     "fileUris": [
                       "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/master/Scripts/init.sh"
                     ],
@@ -325,7 +325,7 @@
     },
     "ExampleNextflowCommand": {
       "type": "string",
-      "value": "[concat('nextflow run hello -process.executor ignite -cluster.join path:', parameters('mountpointPath'), 'cifs/cluster', ' -with-timeline runtimeline.html -with-trace')]"
+      "value": "[concat('nextflow run hello -process.executor ignite -cluster.join path:', parameters('mountpointPath'), '/cifs/cluster', ' -with-timeline runtimeline.html -with-trace')]"
     }
   }
 }
