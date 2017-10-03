@@ -16,10 +16,14 @@ log () {
 
 DEBIAN_FRONTEND="noninteractive"
 
+#TODO: Used to ensure network available. Replace with network wait. 
+sleep 25
+
 #Install CIFS and JQ (used by this script)
 log "Installing CIFS and JQ" /tmp/nfinstall.log 
 apt-get -y update | tee /tmp/nfinstall.log
-apt-get install cifs-utils jq -y | tee -a /tmp/nfinstall.log
+apt-get install cifs-utils -y | tee -a /tmp/nfinstall.log
+apt-get install jq -y | tee -a /tmp/nfinstall.log
 
 
 
@@ -120,8 +124,8 @@ log "Setup Filesystem and Environment Variables" $LOGFILE
 #Todo: This will repeatedly add the same env to the file. Fix that. 
 #Configure nextflow environment vars    
 
-    echo export NXF_WORK=$NFS_SHAREPATH/work >> /etc/environment
-    echo export NXF_ASSETS=$NFS_SHAREPATH/assets >> /etc/environment
+echo export NXF_WORK=$NFS_SHAREPATH/work >> /etc/environment
+echo export NXF_ASSETS=$NFS_SHAREPATH/assets >> /etc/environment
 
 #Use asure epherical instance drive for tmp
 mkdir -p /mnt/nftemp
@@ -146,11 +150,9 @@ log "Done with Install. "
 #If we're a node run the daemon
 if [ "$5" = true ]; then 
 
-#Run nextflow under log dir to provide easy access to logs
+#Run nextflow under log dir to provide easy access to logs. Run as nextflow user to ensure correct permissions.
 log "NODE: Starting cluster nextflow cluster node" $LOGFILE
-
-runuser -l $6 -c 'cd $LOGFOLDER && /usr/local/bin/nextflow node -bg -cluster.join path:$CIFS_SHAREPATH/cluster'
-#/usr/local/bin/nextflow node -bg -cluster.join path:$CIFS_SHAREPATH/cluster
+sudo -H -u $6 bash -c "cd $LOGFOLDER && /usr/local/bin/nextflow node -bg -cluster.join path:$CIFS_SHAREPATH/cluster"
 log "NODE: Cluster node started" $LOGFILE
 
 fi
