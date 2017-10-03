@@ -20,8 +20,6 @@ apt-get -y update | tee /tmp/nfinstall.log
 apt-get install cifs-utils -y | tee -a /tmp/nfinstall.log
 apt-get install jq -y | tee -a /tmp/nfinstall.log
 
-
-
 #Create azure share if it doesn't already exist
 log "Installing AzureCLI and Mounting Azure Files Share" /tmp/nfinstall.log 
 echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ wheezy main" | \
@@ -36,7 +34,7 @@ az storage share create --name $3 --quota 2048 --connection-string "DefaultEndpo
 #Mount the share with symlink and fifo support: see https://wiki.samba.org/index.php/SMB3-Linux
 mkdir -p $4/cifs | tee -a /tmp/nfinstall.log
 # CIFS settings from Azure CloudShell container which uses .img approach. 
-mount -t cifs //$1.file.core.windows.net/$3 $4/cifs -o vers=2.1,username=$1,password=$2,sec=ntlmssp,cache=strict,domain=X,uid=0,noforceuid,gid=0,noforcegid,file_mode=0777,dir_mode=0777,nounix,serverino,mapposix,rsize=1048576,wsize=1048576,echo_interval=60,actimeo=1 | tee -a /tmp/nfinstall.log
+mount -t cifs //$1.file.core.windows.net/$3 $4/cifs -o vers=3.0,username=$1,password=$2,dir_mode=0777,file_mode=0777,mfsymlinks,sfu | tee -a /tmp/nfinstall.log
 CIFS_SHAREPATH=$4/cifs
 
 ###############
