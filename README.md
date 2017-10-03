@@ -31,14 +31,31 @@ The cluster consists of one jumpbox VM (master node) plus 1-100 (limit can be li
     * Mounts this as a shared disk for Nextflow. This implementation supports symlinks and FIFO.
     * Installs OpenJDK
     * Installs Nextflow and configures it to use the mounted Azure Files share.
+    
+## Deploying 
+
+# GUI
+
+Click the 'Deploy to Azure' button and follow the steps. 
+On step 3, once the resources are deployed, you'll see a 'Manage your resources' button. 
+Click this button then select 'Deployments', click the deployment and you'll see the connection details and an example command in the 'Output' section. 
+
+Here is a quick video showing the process:
+
+[![Watch the video](https://raw.github.com/GabLeRoux/WebMole/master/ressources/WebMole_Youtube_Video.png)](https://1drv.ms/v/s!AgO58DGl6B7Rqu9y1ahnXrLlSn0M_g)
+
+Once deployed you can scale the cluster by selecting the VM Scale set and changing the instance count. 
+
+[![Watch the video](https://raw.github.com/GabLeRoux/WebMole/master/ressources/WebMole_Youtube_Video.png)](https://1drv.ms/v/s!AgO58DGl6B7Rqu9wVAqAD5RnJRYSDg)
 
 ## Debugging Cluster
 
 The cluster is created as a 'Deployment' under a resource group. If issues occur, the deployment will provide logs and error details. This can be access as follows in the portal:
 
-
+[![Watch the video](https://raw.github.com/GabLeRoux/WebMole/master/ressources/WebMole_Youtube_Video.png)](https://1drv.ms/f/s!AgO58DGl6B7Rg-NyegXiV8cBhdxgKw)
 
 In most cases a good first step is to delete the resource group and redeploy to rule out transient issues.  
 
 In addition to this, logs are created during the setup of the nodes and master. These are stored on the storage account created for the cluster. You easily access these by install [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/) and browsing the content under '[ResourceGroupUsed]/nfstoragexxxxxxx/File Shares/sharedstorage/logs'. Here is an example:
 
+[![Watch the video](https://raw.github.com/GabLeRoux/WebMole/master/ressources/WebMole_Youtube_Video.png)](https://1drv.ms/v/s!AgO58DGl6B7Rqu9xp6uN8Nufc5mJiA)
