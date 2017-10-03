@@ -14,7 +14,6 @@ log () {
     echo "-------------------------" | tee -a $2    
 }
 
-DEBIAN_FRONTEND="noninteractive"
 
 #TODO: Used to ensure network available. Replace with network wait. 
 sleep 25
@@ -32,10 +31,9 @@ log "Installing AzureCLI and Mounting Azure Files Share" /tmp/nfinstall.log
 echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ wheezy main" | \
      sudo tee /etc/apt/sources.list.d/azure-cli.list 
 
-apt-key adv --keyserver packages.microsoft.com --recv-keys 417A0893
-apt-get install apt-transport-https -y
-apt-get update -y
-apt-get install azure-cli -y
+apt-key adv --keyserver packages.microsoft.com --recv-keys 417A0893 | tee -a /tmp/nfinstall.log
+apt-get install apt-transport-https -y | tee -a /tmp/nfinstall.log
+apt-get install azure-cli -y | tee -a /tmp/nfinstall.log
 
 az storage share create --name $3 --quota 2048 --connection-string "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=$1;AccountKey=$2" | tee -a /tmp/nfinstall.log
 
@@ -55,7 +53,6 @@ CIFS_SHAREPATH=$4/cifs
 #Variables
 #WARNING: NFS share currently on temporary drive. Will not persist between boots. 
 NFS_SHAREPATH=$4/nfs #Location NFS share will be mounted at
-NFS_SRV_SHAREPATH=/mnt/sharesource #Location of the NFS share on server (master node)
 
 mkdir -p $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
 if [ "$5" != true ]; then #If we're the master node create the img file 
