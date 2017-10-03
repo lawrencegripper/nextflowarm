@@ -192,22 +192,6 @@
     },
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(variables('jumpboxVMName'),'/', variables('extensionName'))]",
-      "apiVersion": "2017-03-30",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', variables('jumpboxVMName'))]"
-      ],
-      "properties": {
-        "publisher": "Microsoft.Azure.Extensions",
-        "type": "DockerExtension",
-        "typeHandlerVersion": "1.0",
-        "autoUpgradeMinorVersion": true,
-        "settings": {}
-      }
-    },
-    {
-      "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(variables('jumpboxVMName'),'/nfinitscript')]",
       "apiVersion": "2015-05-01-preview",
       "location": "[resourceGroup().location]",
@@ -301,16 +285,6 @@
                     ],
                     "commandToExecute": "[concat('bash init.sh ', variables('storageAccountName'), ' \"', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, '\" ', parameters('shareName'), ' ', parameters('mountpointPath'), ' true ', parameters('adminUsername'))]"
                   }
-                }
-              },
-              {
-                "name": "dockerextension",
-                "properties": {
-                  "publisher": "Microsoft.Azure.Extensions",
-                  "type": "DockerExtension",
-                  "typeHandlerVersion": "1.0",
-                  "autoUpgradeMinorVersion": true,
-                  "settings": {}
                 }
               }
             ]

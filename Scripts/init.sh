@@ -114,6 +114,15 @@ echo $METADATA > $CIFS_SHAREPATH/logs/$NODENAME/node.metadata
 log "Installing JAVA" $LOGFILE
 apt-get install openjdk-8-jdk -y | tee -a $LOGFILE
 
+log "Install Docker" $LOGFILE
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - | tee -a $LOGFILE
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee -a $LOGFILE
+apt-get update -y | tee -a $LOGFILE
+apt-get install -y docker-ce | tee -a $LOGFILE
+#Add the nextflow user to the docker group. 
+usermod -aG docker $6 | tee -a $LOGFILE
+
+
 log "Setup Filesystem and Environment Variables" $LOGFILE
 
 #Todo: This will repeatedly add the same env to the file. Fix that. 
