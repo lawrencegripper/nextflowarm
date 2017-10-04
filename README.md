@@ -39,7 +39,7 @@ The cluster consists of one jumpbox VM (master node) plus 1-100 (limit can be li
 
 ### GUI
 
-Click the 'Deploy to Azure' button and follow the steps. 
+Click the 'Deploy to Azure' button and follow the instructions provided. 
 On step 3, once the resources are deployed, you'll see a 'Manage your resources' button. 
 Click this button then select 'Deployments', click the deployment and you'll see the connection details and an example command in the 'Output' section. 
 
@@ -51,12 +51,12 @@ Once deployed you can scale the cluster by selecting the VM Scale set and changi
 
 ## Debugging Cluster
 
-The cluster is created as a 'Deployment' under a resource group. If issues occur, the deployment will provide logs and error details. This can be access as follows in the portal:
+The cluster is created as a 'Deployment' under a resource group. If issues occur, the deployment will provide logs and error details. This can be accessed in the portal as follows:
 
 [Debugging cluster video](https://1drv.ms/f/s!AgO58DGl6B7Rg-NyegXiV8cBhdxgKw)
 
 In most cases a good first step is to delete the resource group and redeploy to rule out transient issues.  
 
-In addition to this, logs are created during the setup of the nodes and master. These are stored on the storage account created for the cluster. You easily access these by install [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/) and browsing the content under '[ResourceGroupUsed]/nfstoragexxxxxxx/File Shares/sharedstorage/logs'. Here is an example:
+In addition to this, logs are created during the setup of the nodes and master. These are stored in the storage account created for the cluster. You easily access these by installing [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/) and browsing the content under '[ResourceGroupUsed]/nfstoragexxxxxxx/File Shares/sharedstorage/logs'. Here is an example:
 
 [Cluster logs video](https://1drv.ms/v/s!AgO58DGl6B7Rqu9xp6uN8Nufc5mJiA)
