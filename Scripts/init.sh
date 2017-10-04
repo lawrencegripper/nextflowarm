@@ -18,7 +18,6 @@ log () {
 log "Installing CIFS and JQ" /tmp/nfinstall.log 
 apt-get -y update | tee /tmp/nfinstall.log
 apt-get install cifs-utils -y | tee -a /tmp/nfinstall.log
-apt-get install jq -y | tee -a /tmp/nfinstall.log
 
 #Create azure share if it doesn't already exist
 log "Installing AzureCLI and Mounting Azure Files Share" /tmp/nfinstall.log 
@@ -95,6 +94,9 @@ fi
 # end
 ###############
 
+log "Get machine metadata and copy logs to share"
+
+apt-get install jq -y | tee -a /tmp/nfinstall.log
 #Write instance details into share /cluster for debugging
 METADATA=$(curl -H Metadata:true http://169.254.169.254/metadata/instance?api-version=2017-04-02)
 NODENAME=$(echo $METADATA | jq -r '.compute.name')
@@ -125,9 +127,13 @@ usermod -aG docker $6 | tee -a $LOGFILE
 
 log "Setup Filesystem and Environment Variables" $LOGFILE
 
+mkdir -p $NFS_SHAREPATH/work
+chmod 777 $NFS_SHAREPATH/work
+mkdir -p $NFS_SHAREPATH/assets
+chmod 777 $NFS_SHAREPATH/assets
+
 #Todo: This will repeatedly add the same env to the file. Fix that. 
 #Configure nextflow environment vars    
-
 echo export NXF_WORK=$NFS_SHAREPATH/work >> /etc/environment
 echo export NXF_ASSETS=$NFS_SHAREPATH/assets >> /etc/environment
 
