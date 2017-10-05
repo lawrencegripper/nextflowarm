@@ -67,7 +67,7 @@ if [ "$5" != true ]; then #If we're the master node create the img file
     chown nobody:nogroup $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
     chmod 777 $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
 
-    echo "$NFS_SHAREPATH    $ALLOWEDSUBNET(rw,sync,no_subtree_check)" > /etc/exports 
+    echo "$NFS_SHAREPATH    $ALLOWEDSUBNET(rw,sync,no_subtree_check,all_squash,anonuid=1000,anongid=100)" > /etc/exports 
 
     systemctl restart nfs-kernel-server | tee -a /tmp/nfinstall.log
 
@@ -123,6 +123,11 @@ apt-get update -y | tee -a $LOGFILE
 apt-get install -y docker-ce | tee -a $LOGFILE
 #Add the nextflow user to the docker group. 
 usermod -aG docker $6 | tee -a $LOGFILE
+#Nextflow creates files with write permissions only allowed by user that created them
+#As we run nextflow under user/group nextflow/nextlow but the docker containers run under root 
+#We need to add root to the nextflow user group to give it the correct permissions
+usermod -aG $6 root | tee -a $LOGFILE
+usermod -aG nogroup root | tee -a $LOGFILE
 
 
 log "Setup Filesystem and Environment Variables" $LOGFILE
@@ -136,6 +141,11 @@ chmod 777 $NFS_SHAREPATH/assets
 #Configure nextflow environment vars    
 echo export NXF_WORK=$NFS_SHAREPATH/work >> /etc/environment
 echo export NXF_ASSETS=$NFS_SHAREPATH/assets >> /etc/environment
+#Added for debugging
+echo export NXF_AZ_USER=$6 >> /etc/environment
+echo export NXF_AZ_LOGFILE=$LOGFILE >> /etc/environment
+echo export NXF_AZ_CIFSPATH=$CIFS_SHAREPATH >> /etc/environment
+echo export NXF_AZ_NFSPATH=$NFS_SHAREPATH >> /etc/environment
 
 #Use asure epherical instance drive for tmp
 mkdir -p /mnt/nftemp
