@@ -301,6 +301,10 @@
     "ExampleNextflowCommand": {
       "type": "string",
       "value": "[concat('nextflow run hello -process.executor ignite -cluster.join path:', parameters('mountpointPath'), '/cifs/cluster', ' -with-timeline runtimeline.html -with-trace')]"
+    },
+    "ExampleNextflowCommandWithDocker": {
+      "type": "string",
+      "value": "[concat('nextflow run nextflow-io/rnatoy -with-docker -process.executor ignite -cluster.join path:', parameters('mountpointPath'), '/cifs/cluster', ' -with-timeline runtimeline.html -with-trace')]"
     }
   }
 }
