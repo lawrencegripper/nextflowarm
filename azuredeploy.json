@@ -221,13 +221,12 @@
         "name": "[parameters('vmSku')]",
         "capacity": "[parameters('instanceCount')]"
       },
-      "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', variables('jumpboxVMName'))]",        
+      "dependsOn": [       
         "[concat('Microsoft.Network/virtualNetworks/', parameters('vnetName'))]",
         "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
       ],
       "properties": {
-        "overprovision": "false",
+        "overprovision": "true",
         "upgradePolicy": {
           "mode": "Manual"
         },
