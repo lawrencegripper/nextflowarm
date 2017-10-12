@@ -1,12 +1,7 @@
-# $1_storageName = Azure storage account name
-# $2_storageAcctKey = Azure storage account key
-# $3_fileshareName = Azure file share name
-# $4_mountpointPath = mountpoint path
-# $5_runAsNode = should run as nf node
-# $6_nfUsername = username of nextflow user
-
+#docker build . --build-arg nfUsername=nextflow
 FROM ubuntu
-ARG 6_nfUsername=adminuser
+ARG nfUsername
+
 #Fix for "Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module)"
 ENV DEBIAN_FRONTEND noninteractive 
 
@@ -30,15 +25,14 @@ RUN apt-get -qq update &&\
     #log "Installed ancillary packages" $LOGFILE &&\
 
     #Create Nextflow user
-    useradd -m -s /bin/bash $6_nfUsername &&\
+    useradd -m -s /bin/bash $nfUsername &&\
 
     #Add the Nextflow user to the docker group. 
-    usermod -aG docker $6_nfUsername &&\
+    usermod -aG docker $nfUsername &&\
     #Nextflow creates files with write permissions only allowed by user that created them
     #As we run Nextflow under user/group Nextflow/Nextflow but the Docker containers run under root 
     #We need to add root to the Nextflow user group to give it the correct permissions
-    usermod -aG $6_nfUsername root &&\
-    usermod -aG nogroup root &&\
+    usermod -aG $nfUsername root &&\
 
     #Install Nextflow
     #log "Installing Nextflow" $LOGFILE &&\
