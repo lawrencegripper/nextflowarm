@@ -1,29 +1,29 @@
 #!/bin/sh
 #!/bin/bash
-# $1 = Azure storage account name
-# $2 = Azure storage account key
-# $3 = Azure file share name
-# $4 = mountpoint path
-# $5 = should run as nf node
-# $6 = username of nextflow user
+# $1_storageName = Azure storage account name
+# $2_storageAcctKey = Azure storage account key
+# $3_fileshareName = Azure file share name
+# $4_mountpointPath = mountpoint path
+# $5_runAsNode = should run as nf node
+# $6_nfUsername = username of nextflow user
 
 
-az storage share create --name $3 --quota 2048 --connection-string "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=$1;AccountKey=$2" | tee -a /tmp/nfinstall.log
+az storage share create --name $3_fileshareName --quota 2048 --connection-string "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=$1_storageName;AccountKey=$2_storageAcctKey" | tee -a /tmp/nfinstall.log
 
 #Wait for the file share to be available. 
 sleep 10
 
 #Mount the share with symlink and fifo support: see https://wiki.samba.org/index.php/SMB3-Linux
-mkdir -p $4/cifs | tee -a /tmp/nfinstall.log
+mkdir -p $4_mountpointPath/cifs | tee -a /tmp/nfinstall.log
 # CIFS settings from Azure CloudShell container which uses .img approach. 
-mount -t cifs //$1.file.core.windows.net/$3 $4/cifs -o vers=3.0,username=$1,password=$2,dir_mode=0777,file_mode=0777,mfsymlinks,sfu | tee -a /tmp/nfinstall.log
+mount -t cifs //$1_storageName.file.core.windows.net/$3_fileshareName $4_mountpointPath/cifs -o vers=3.0,username=$1_storageName,password=$2_storageAcctKey,dir_mode=0777,file_mode=0777,mfsymlinks,sfu | tee -a /tmp/nfinstall.log
 
 #Variables
 #WARNING: NFS share currently on temporary drive. Will not persist between boots. 
-NFS_SHAREPATH=$4/nfs #Location NFS share will be mounted at
+NFS_SHAREPATH=$4_mountpointPath/nfs #Location NFS share will be mounted at
 
 mkdir -p $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
-if [ "$5" != true ]; then #If we're the master node create the img file 
+if [ "$5_runAsNode" != true ]; then #If we're the master node create the img file 
     log "MASTER: Creating NFS share" /tmp/nfinstall.log 
 
     #Variables
@@ -51,7 +51,7 @@ do
     sleep 5
 done
 
-if [ "$5" = true ]; then
+if [ "$5_runAsNode" = true ]; then
     log "NODE: Install NFS client tools" /tmp/nfinstall.log 
     apt-get install nfs-kernel-server -y | tee -a /tmp/nfinstall.log
 
@@ -79,7 +79,7 @@ chmod 777 $NFS_SHAREPATH/assets
 echo export NXF_WORK=$NFS_SHAREPATH/work >> /etc/environment
 echo export NXF_ASSETS=$NFS_SHAREPATH/assets >> /etc/environment
 #Added for debugging
-echo export NXF_AZ_USER=$6 >> /etc/environment
+echo export NXF_AZ_USER=$6_nfUsername >> /etc/environment
 echo export NXF_AZ_LOGFILE=$LOGFILE >> /etc/environment
 echo export NXF_AZ_CIFSPATH=$CIFS_SHAREPATH >> /etc/environment
 echo export NXF_AZ_NFSPATH=$NFS_SHAREPATH >> /etc/environment
