@@ -27,12 +27,30 @@ echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ wheezy ma
 apt-key adv --keyserver packages.microsoft.com --recv-keys 417A0893 | tee -a /tmp/nfinstall.log
 apt-get -y update | tee /tmp/nfinstall.log
 apt-get install apt-transport-https -y | tee -a /tmp/nfinstall.log
-apt-get install azure-cli -y | tee -a /tmp/nfinstall.log
+apt-get install azure-cli wget -y | tee -a /tmp/nfinstall.log
 
 az storage share create --name $3 --quota 2048 --connection-string "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=$1;AccountKey=$2" | tee -a /tmp/nfinstall.log
 
 #Wait for the file share to be available. 
 sleep 10
+
+#Format data disks
+DATA_DIR="/datadisks/disk1"
+if ! [ -f "vm-disk-utils-0.1.sh" ]; 
+then
+    DOWNLOAD_SCRIPT="https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/shared_scripts/ubuntu/vm-disk-utils-0.1.sh"
+    log "Disk setup script not found in `pwd`, download from $DOWNLOAD_SCRIPT"
+    wget -q $DOWNLOAD_SCRIPT
+fi
+
+bash ./vm-disk-utils-0.1.sh
+if [ $? -eq 0 ] && [ -d "$DATA_DIR" ];
+then
+    log "Disk setup successful, using $DATA_DIR"
+    chmod 777 $DATA_DIR
+else
+    log "Disk setup failed, using default data storage location"
+fi
 
 #Mount the share with symlink and fifo support: see https://wiki.samba.org/index.php/SMB3-Linux
 mkdir -p $4/cifs | tee -a /tmp/nfinstall.log
