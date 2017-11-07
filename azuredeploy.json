@@ -8,9 +8,29 @@
         "description": "Unique DNS Name for the Public IP used to access the Docker Virtual Machine (master node)."
       }
     },
-    "vmSku": {
+    "vmImageReference" :{
+      "type": "object",
+      "defaultValue": {
+        "publisher": "Canonical",
+        "offer": "UbuntuServer",
+        "sku": "16.04-LTS",
+        "version": "latest"
+      },
+      "metadata": {
+        "description": "The image to use for VMs created. This can be marketplace or custom image",
+        "link": "https://docs.microsoft.com/en-us/nodejs/api/azure-arm-compute/imagereference?view=azure-node-2.2.0"
+      }
+    },
+    "vmNodeSku": {
       "type": "string",
-      "defaultValue": "Standard_D1",
+      "defaultValue": "Standard_E4_v3",
+      "metadata": {
+        "description": "Size of VMs in the VM Scale Set."
+      }
+    },
+    "vmMasterSku": {
+      "type": "string",
+      "defaultValue": "Standard_L4s",
       "metadata": {
         "description": "Size of VMs in the VM Scale Set."
       }
@@ -65,12 +85,7 @@
     }
   },
   "variables": {
-    "jumpboxOSDiskName": "jumpboxOsdisk",
     "jumpboxNICName": "jumpboxNIC",
-    "imagePublisher": "Canonical",
-    "ubuntuOSVersion": "16.04-LTS",
-    "imageOffer": "UbuntuServer",
-    "extensionName": "jumpboxExtension",
     "addressPrefix": "10.0.0.0/16",
     "subnetPrefix": "10.0.0.0/24",
     "vmssName": "[concat('cluster', uniqueString(parameters('dnsNameForJumpBox')))]",
@@ -163,7 +178,7 @@
       ],
       "properties": {
         "hardwareProfile": {
-          "vmSize": "[parameters('vmSku')]"
+          "vmSize": "[parameters('vmMasterSKU')]"
         },
         "osProfile": {
           "computerName": "[variables('jumpboxVMName')]",
@@ -171,12 +186,7 @@
           "adminPassword": "[parameters('adminPassword')]"
         },
         "storageProfile": {
-          "imageReference": {
-            "publisher": "[variables('imagePublisher')]",
-            "offer": "[variables('imageOffer')]",
-            "sku": "[variables('ubuntuOSVersion')]",
-            "version": "latest"
-          },
+          "imageReference": "[parameters('vmImageReference')]",
           "osDisk": {
             "createOption": "FromImage"
           }
@@ -218,7 +228,7 @@
       "location": "[resourceGroup().location]",
       "apiVersion": "2017-03-30",
       "sku": {
-        "name": "[parameters('vmSku')]",
+        "name": "[parameters('vmNodeSKU')]",
         "capacity": "[parameters('instanceCount')]"
       },
       "dependsOn": [       
@@ -236,12 +246,7 @@
               "createOption": "FromImage",
               "caching": "ReadWrite"
             },
-            "imageReference": {
-              "publisher": "[variables('imagePublisher')]",
-              "offer": "[variables('imageOffer')]",
-              "sku": "[variables('ubuntuOSVersion')]",
-              "version": "latest"
-            }
+            "imageReference": "[parameters('vmImageReference')]"
           },
           "osProfile": {
             "computerNamePrefix": "[variables('vmssName')]",

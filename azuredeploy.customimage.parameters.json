@@ -10,6 +10,11 @@
     },
     "dnsNameForJumpBox": {
       "value": "nextflowdockerdns"
+    },
+    "vmImageReference": {
+      "value": {
+        "id": "yourManagedImageId - 'az image list' then take id from output"
+      }
     }
   }
 }
