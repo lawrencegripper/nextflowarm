@@ -80,7 +80,7 @@
       "type": "string",
       "defaultValue": "/datadisks/disk1",
       "metadata": {
-        "description": "Path on VM to mount file share - will also link to user home dir."
+        "description": "Path on VM to mount file shares. '/datadisks/disk1/' is a Premium Managed disk with high iops, this will suit most uses."
       }
     }
   },
@@ -195,6 +195,7 @@
               "lun": 0,
               "name": "jumpboxdatadisk",
               "diskSizeGB": 256,
+              "caching":"None",
               "createOption":"Empty",
               "managedDisk": {
                 "storageAccountType": "Premium_LRS"

@@ -47,10 +47,10 @@ bash ./vm-disk-utils-0.1.sh
 if [ $? -eq 0 ] && [ -d "$DATA_DIR" ];
 then
     log "Disk setup successful, using $DATA_DIR"
-    chmod 777 $DATA_DIR
 else
     log "Disk setup failed, using default data storage location"
 fi
+chmod 777 $DATA_DIR
 
 #Mount the share with symlink and fifo support: see https://wiki.samba.org/index.php/SMB3-Linux
 mkdir -p $4/cifs | tee -a /tmp/nfinstall.log
