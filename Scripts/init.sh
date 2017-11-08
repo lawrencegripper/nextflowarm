@@ -39,18 +39,19 @@ DATA_DIR="/datadisks/disk1"
 if ! [ -f "vm-disk-utils-0.1.sh" ]; 
 then
     DOWNLOAD_SCRIPT="https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/shared_scripts/ubuntu/vm-disk-utils-0.1.sh"
-    log "Disk setup script not found in `pwd`, download from $DOWNLOAD_SCRIPT"
+    log "Disk setup script not found in `pwd`, download from $DOWNLOAD_SCRIPT" /tmp/nfinstall.log 
     wget -q $DOWNLOAD_SCRIPT
 fi
 
 bash ./vm-disk-utils-0.1.sh
 if [ $? -eq 0 ] && [ -d "$DATA_DIR" ];
 then
-    log "Disk setup successful, using $DATA_DIR"
+    log "Disk setup successful, using $DATA_DIR" /tmp/nfinstall.log 
 else
-    log "Disk setup failed, using default data storage location"
+    log "Disk setup failed, using default data storage location" /tmp/nfinstall.log 
 fi
 chmod 777 $DATA_DIR
+chmod 777 /datadisks
 
 #Mount the share with symlink and fifo support: see https://wiki.samba.org/index.php/SMB3-Linux
 mkdir -p $4/cifs | tee -a /tmp/nfinstall.log
@@ -190,7 +191,7 @@ if [ "$5" = true ]; then
 
 #Run nextflow under log dir to provide easy access to logs. Run as nextflow user to ensure correct permissions.
 log "NODE: Starting cluster nextflow cluster node" $LOGFILE
-sudo -H -u $6 bash -c "cd $LOGFOLDER && /usr/local/bin/nextflow node -bg -cluster.join path:$CIFS_SHAREPATH/cluster"
+sudo -H -u $6 bash -c "cd $LOGFOLDER && /usr/local/bin/nextflow node -bg -cluster.join path:$CIFS_SHAREPATH/cluster -cluster.interface eth0"
 log "NODE: Cluster node started" $LOGFILE
 
 fi
