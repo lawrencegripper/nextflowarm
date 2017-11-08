@@ -6,6 +6,7 @@
 # $4 = mountpoint path
 # $5 = should run as nf node
 # $6 = username of nextflow user
+# $7 = number of tasks assigned to each node (cluster.maxCpus)
 
 log () {
     echo "-------------------------" | tee -a $2
@@ -193,7 +194,7 @@ if [ "$5" = true ]; then
 
 #Run nextflow under log dir to provide easy access to logs. Run as nextflow user to ensure correct permissions.
 log "NODE: Starting cluster nextflow cluster node" $LOGFILE
-sudo -H -u $6 bash -c "cd $LOGFOLDER && /usr/local/bin/nextflow node -bg -cluster.join path:$CIFS_SHAREPATH/cluster -cluster.interface eth0"
+sudo -H -u $6 bash -c "cd $LOGFOLDER && /usr/local/bin/nextflow node -bg -cluster.join path:$CIFS_SHAREPATH/cluster -cluster.interface eth0 -cluster.maxCpus $7"
 log "NODE: Cluster node started" $LOGFILE
 
 fi

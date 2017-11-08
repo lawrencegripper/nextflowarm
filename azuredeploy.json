@@ -82,6 +82,13 @@
       "metadata": {
         "description": "Path on VM to mount file shares. '/datadisks/disk1/' is a Premium Managed disk with high iops, this will suit most uses."
       }
+    },
+    "nodeMaxCpus": {
+      "defaultValue": 2,
+      "type": "int",
+      "metadata": {
+        "description": "Sets the cluster.maxCpus setting on all cluster nodes"
+      }
     }
   },
   "variables": {
@@ -299,7 +306,7 @@
                     "fileUris": [
                       "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/master/Scripts/init.sh"
                     ],
-                    "commandToExecute": "[concat('bash init.sh ', variables('storageAccountName'), ' \"', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, '\" ', parameters('shareName'), ' ', parameters('mountpointPath'), ' true ', parameters('adminUsername'))]"
+                    "commandToExecute": "[concat('bash init.sh ', variables('storageAccountName'), ' \"', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, '\" ', parameters('shareName'), ' ', parameters('mountpointPath'), ' true ', parameters('adminUsername'), ' ', parameters('nodeMaxCpus'))]"
                   }
                 }
               }
@@ -316,11 +323,11 @@
     },
     "ExampleNextflowCommand": {
       "type": "string",
-      "value": "[concat('nextflow run hello -process.executor ignite -cluster.join path:', parameters('mountpointPath'), '/cifs/cluster', ' -with-timeline runtimeline.html -with-trace')]"
+      "value": "[concat('nextflow run hello -process.executor ignite -cluster.join path:', parameters('mountpointPath'), '/cifs/cluster', ' -with-timeline runtimeline.html -with-trace -cluster.maxCpus 0')]"
     },
     "ExampleNextflowCommandWithDocker": {
       "type": "string",
-      "value": "[concat('nextflow run nextflow-io/rnatoy -with-docker -process.executor ignite -cluster.join path:', parameters('mountpointPath'), '/cifs/cluster', ' -with-timeline runtimeline.html -with-trace')]"
+      "value": "[concat('nextflow run nextflow-io/rnatoy -with-docker -process.executor ignite -cluster.join path:', parameters('mountpointPath'), '/cifs/cluster', ' -with-timeline runtimeline.html -with-trace -cluster.maxCpus 0')]"
     }
   }
 }
