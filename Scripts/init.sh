@@ -36,6 +36,10 @@ sleep 10
 
 #Format data disks
 DATA_DIR="/datadisks/disk1"
+mkdir -p $DATA_DIR
+chmod 777 $DATA_DIR
+chmod 777 /datadisks
+
 if ! [ -f "vm-disk-utils-0.1.sh" ]; 
 then
     DOWNLOAD_SCRIPT="https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/shared_scripts/ubuntu/vm-disk-utils-0.1.sh"
@@ -50,8 +54,6 @@ then
 else
     log "Disk setup failed, using default data storage location" /tmp/nfinstall.log 
 fi
-chmod 777 $DATA_DIR
-chmod 777 /datadisks
 
 #Mount the share with symlink and fifo support: see https://wiki.samba.org/index.php/SMB3-Linux
 mkdir -p $4/cifs | tee -a /tmp/nfinstall.log
