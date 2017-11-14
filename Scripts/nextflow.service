@@ -1,0 +1,13 @@
+[Unit]
+Description=Nextflow Node service
+After=syslog.target network.target
+
+[Service]
+Type=forking
+EnvironmentFile=/etc/environment
+ExecStart=/usr/local/bin/nextflow node -bg -cluster.join path:__CIFS_SHAREPATH__/cluster -cluster.interface eth0 -cluster.maxCpus __MAX_CPU__
+Restart=always
+WorkingDirecotry=__LOG_FOLDER__
+
+[Install]
+WantedBy=multi-user.target

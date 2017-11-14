@@ -18,23 +18,21 @@ log () {
 #Install CIFS and JQ (used by this script)
 log "Installing CIFS and JQ" /tmp/nfinstall.log 
 apt-get -y update | tee /tmp/nfinstall.log
-apt-get install cifs-utils -y | tee -a /tmp/nfinstall.log
+apt-get install cifs-utils sudo apt-transport-https wget -y | tee -a /tmp/nfinstall.log
 
 #Create azure share if it doesn't already exist
 log "Installing AzureCLI and Mounting Azure Files Share" /tmp/nfinstall.log 
 echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ wheezy main" | \
-     sudo tee /etc/apt/sources.list.d/azure-cli.list 
+    sudo tee /etc/apt/sources.list.d/azure-cli.list 
 
 apt-key adv --keyserver packages.microsoft.com --recv-keys 417A0893 | tee -a /tmp/nfinstall.log
 apt-get -y update | tee /tmp/nfinstall.log
-apt-get install apt-transport-https -y | tee -a /tmp/nfinstall.log
-apt-get install azure-cli wget -y | tee -a /tmp/nfinstall.log
+apt-get install azure-cli -y | tee -a /tmp/nfinstall.log
 
 az storage share create --name $3 --quota 2048 --connection-string "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=$1;AccountKey=$2" | tee -a /tmp/nfinstall.log
 
 #Wait for the file share to be available. 
 sleep 10
-
 
 DATA_DIR="/datadisks/disk1"
 if ! [ -f "vm-disk-utils-0.1.sh" ]; 
@@ -52,6 +50,7 @@ else
     log "Disk setup failed, using default data storage location" /tmp/nfinstall.log 
 fi
 
+ log "Mounting CIFS" /tmp/nfinstall.log 
 #Format data disks
 mkdir -p $DATA_DIR
 chmod 777 $DATA_DIR
@@ -60,7 +59,8 @@ chmod 777 /datadisks
 #Mount the share with symlink and fifo support: see https://wiki.samba.org/index.php/SMB3-Linux
 mkdir -p $4/cifs | tee -a /tmp/nfinstall.log
 # CIFS settings from Azure CloudShell container which uses .img approach. 
-mount -t cifs //$1.file.core.windows.net/$3 $4/cifs -o vers=3.0,username=$1,password=$2,dir_mode=0777,file_mode=0777,mfsymlinks,sfu | tee -a /tmp/nfinstall.log
+echo //$1.file.core.windows.net/$3 $4/cifs cifs vers=3.0,username=$1,password=$2,dir_mode=0777,file_mode=0777,mfsymlinks,sfu >> /etc/fstab 
+mount -a  | tee -a /tmp/nfinstall.log
 CIFS_SHAREPATH=$4/cifs
 
 ###############
@@ -109,7 +109,8 @@ if [ "$5" = true ]; then
 
     log "NODE: Mounting NFS share" /tmp/nfinstall.log 
     mkdir -p $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
-    mount jumpboxvm:$NFS_SHAREPATH $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
+    echo jumpboxvm:$NFS_SHAREPATH $NFS_SHAREPATH nfs rw,soft,intr 0,0 >> /etc/fstab
+    mount -a | tee -a /tmp/nfinstall.log
     chmod 777 $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
 fi
 
@@ -119,7 +120,7 @@ fi
 
 log "Get machine metadata and copy logs to share"
 
-apt-get install jq -y | tee -a /tmp/nfinstall.log
+apt-get install jq curl -y | tee -a /tmp/nfinstall.log
 #Write instance details into share /cluster for debugging
 METADATA=$(curl -H Metadata:true http://169.254.169.254/metadata/instance?api-version=2017-04-02)
 NODENAME=$(echo $METADATA | jq -r '.compute.name')
@@ -193,9 +194,13 @@ log "Done with Install. "
 #If we're a node run the daemon
 if [ "$5" = true ]; then 
 
-#Run nextflow under log dir to provide easy access to logs. Run as nextflow user to ensure correct permissions.
+sed -i e "s|__LOG_FOLDER__|$LOGFOLDER|g" nextflow.service
+sed -i e "s|__MAX_CPU__|$7|g" nextflow.service
+sed -i e "s|__CIFS_SHAREPATH__|$CIFS_SHAREPATH|g" nextflow.service
+
 log "NODE: Starting cluster nextflow cluster node" $LOGFILE
-sudo -H -u $6 bash -c "cd $LOGFOLDER && /usr/local/bin/nextflow node -bg -cluster.join path:$CIFS_SHAREPATH/cluster -cluster.interface eth0 -cluster.maxCpus $7"
+cp nextflow.service /etc/systemd/system | tee -a $LOGFILE
+systemctl enable nextflow.service | tee -a $LOGFILE
 log "NODE: Cluster node started" $LOGFILE
 
 fi

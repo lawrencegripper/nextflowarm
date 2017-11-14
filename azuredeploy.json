@@ -92,7 +92,8 @@
     }
   },
   "variables": {
-    "nextflowInitScript": "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/707dcb67486a77586f38bd4b0732f7f4222bb97c/Scripts/init.sh",
+    "nextflowInitScript": "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/blob/rebootsafecluster/Scripts/init.sh",
+    "nextflowServiceUnit": "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/blob/rebootsafecluster/Scripts/nextflow.service",
     "jumpboxNICName": "jumpboxNIC",
     "addressPrefix": "10.0.0.0/16",
     "subnetPrefix": "10.0.0.0/24",
@@ -236,7 +237,8 @@
         "settings": {
           "timestamp": 2121,
           "fileUris": [
-            "[variables('nextflowInitScript')]"
+            "[variables('nextflowInitScript')]",
+            "[variables('nextflowServiceUnit')]"
           ],
           "commandToExecute": "[concat('bash init.sh ', variables('storageAccountName'), ' ', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ' ', parameters('shareName'), ' ', parameters('mountpointPath'), ' false ', parameters('adminUsername'))]"
         }
@@ -305,7 +307,8 @@
                   "settings": {
                     "timestamp": 2120,
                     "fileUris": [
-                      "[variables('nextflowInitScript')]"
+                      "[variables('nextflowInitScript')]",
+                      "[variables('nextflowServiceUnit')]"
                     ],
                     "commandToExecute": "[concat('bash init.sh ', variables('storageAccountName'), ' \"', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, '\" ', parameters('shareName'), ' ', parameters('mountpointPath'), ' true ', parameters('adminUsername'), ' ', parameters('nodeMaxCpus'))]"
                   }
