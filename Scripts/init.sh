@@ -194,12 +194,23 @@ log "Done with Install. "
 #If we're a node run the daemon
 if [ "$5" = true ]; then 
 
-sed -i e "s|__LOG_FOLDER__|$LOGFOLDER|g" nextflow.service
-sed -i e "s|__MAX_CPU__|$7|g" nextflow.service
-sed -i e "s|__CIFS_SHAREPATH__|$CIFS_SHAREPATH|g" nextflow.service
+#Create a systemd unit
+cat >/etc/systemd/system/nextflow.service <<EOL
+[Unit]
+Description=Nextflow Node service
+After=syslog.target network.target
+
+[Service]
+Type=forking
+ExecStart=/usr/local/bin/nextflow node -bg -cluster.join path:$CIFS_SHAREPATH/cluster -cluster.interface eth0 -cluster.maxCpus $7
+Restart=always
+WorkingDirectory=$LOGFOLDER
+
+[Install]
+WantedBy=multi-user.target 
+EOL
 
 log "NODE: Starting cluster nextflow cluster node" $LOGFILE
-cp nextflow.service /etc/systemd/system | tee -a $LOGFILE
 systemctl enable nextflow.service | tee -a $LOGFILE
 log "NODE: Cluster node started" $LOGFILE
 
