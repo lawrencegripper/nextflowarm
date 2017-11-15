@@ -212,6 +212,7 @@ EOL
 
 log "NODE: Starting cluster nextflow cluster node" $LOGFILE
 systemctl enable nextflow.service | tee -a $LOGFILE
+systemctl start nextflow.service | tee -a $LOGFILE
 log "NODE: Cluster node started" $LOGFILE
 
 fi
