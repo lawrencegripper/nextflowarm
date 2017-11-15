@@ -109,7 +109,7 @@ if [ "$5" = true ]; then
 
     log "NODE: Mounting NFS share" /tmp/nfinstall.log 
     mkdir -p $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
-    echo jumpboxvm:$NFS_SHAREPATH $NFS_SHAREPATH nfs rw,soft,intr 0,0 >> /etc/fstab
+    echo jumpboxvm:$NFS_SHAREPATH $NFS_SHAREPATH nfs rw,soft,intr >> /etc/fstab
     mount -a | tee -a /tmp/nfinstall.log
     chmod 777 $NFS_SHAREPATH | tee -a /tmp/nfinstall.log
 fi
