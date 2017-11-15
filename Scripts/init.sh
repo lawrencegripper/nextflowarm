@@ -198,7 +198,7 @@ if [ "$5" = true ]; then
 cat >/etc/systemd/system/nextflow.service <<EOL
 [Unit]
 Description=Nextflow Node service
-After=syslog.target network.target
+After=network-online.target
 
 [Service]
 Type=forking
