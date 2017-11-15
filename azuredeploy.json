@@ -92,7 +92,7 @@
     }
   },
   "variables": {
-    "nextflowInitScript": "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/rebootsafecluster/Scripts/init.sh",
+    "nextflowInitScript": "https://raw.githubusercontent.com/lawrencegripper/nextflowarm/master/Scripts/init.sh",
     "jumpboxNICName": "jumpboxNIC",
     "addressPrefix": "10.0.0.0/16",
     "subnetPrefix": "10.0.0.0/24",
